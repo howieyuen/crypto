@@ -76,7 +76,7 @@ type Config struct {
 }
 ```
 
-KeyPair stores key pair object:
+`KeyPair` stores key pair object:
 
 ```go
 type KeyPair struct {
@@ -100,4 +100,4 @@ There are several helpful functions in this repo, eg:
 
 ## Licenses
 
-Apache License Version 2.0
+[Apache License Version 2.0](LICENSE)
