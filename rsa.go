@@ -61,6 +61,12 @@ func (c *Config) GenerateKeyPair() (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
+// KeyPair stores key pair object
+type KeyPair struct {
+	publicKey  *rsa.PublicKey
+	privateKey *rsa.PrivateKey
+}
+
 // SaveKeyPair save key pair to local path defined in Config.
 func (c *Config) SaveKeyPair(keyPair *rsa.PrivateKey) error {
 	// Make parent dir
@@ -78,26 +84,22 @@ func (c *Config) SaveKeyPair(keyPair *rsa.PrivateKey) error {
 	return nil
 }
 
-// LoadKeyPair return a KeyPair object by loading key files defined in Config.
-func (c *Config) LoadKeyPair() (*KeyPair, error) {
+// LoadPublicKey return a KeyPair object contains public key from Config.IDRsaPub
+func (c *Config) LoadPublicKey() (*KeyPair, error) {
 	publicKey, err := getIDRsaPub(c.IDRsaPub)
 	if err != nil {
 		return nil, err
 	}
+	return &KeyPair{publicKey: publicKey}, nil
+}
+
+// LoadPrivateKey return a KeyPair object contains private key from Config.IDRsa
+func (c *Config) LoadPrivateKey() (*KeyPair, error) {
 	privateKey, err := getIDRsa(c.IDRsa)
 	if err != nil {
 		return nil, err
 	}
-	return &KeyPair{
-		privateKey: privateKey,
-		publicKey:  publicKey,
-	}, nil
-}
-
-// KeyPair stores key pair object
-type KeyPair struct {
-	publicKey  *rsa.PublicKey
-	privateKey *rsa.PrivateKey
+	return &KeyPair{privateKey: privateKey}, nil
 }
 
 // EncryptPKCS1v15 encrypts the given message with RSA and the padding scheme from PKCS #1 v1.5

@@ -9,6 +9,7 @@ import (
 func Test(t *testing.T) {
 	var err error
 	c := NewDefaultConfig()
+	defer os.RemoveAll(c.DotKeys)
 	t.Run("GenerateKeyPair", func(t *testing.T) {
 		var keyPair *rsa.PrivateKey
 		if keyPair, err = c.GenerateKeyPair(); err != nil {
@@ -25,10 +26,14 @@ func Test(t *testing.T) {
 		}
 	})
 
-	var keyPair *KeyPair
+	var publicKey *KeyPair
+	var privateKey *KeyPair
 	t.Run("LoadKeyPair", func(t *testing.T) {
-		if keyPair, err = c.LoadKeyPair(); err != nil {
-			t.Fatalf("LoadKeyPair() failed, err: %v", err)
+		if publicKey, err = c.LoadPublicKey(); err != nil {
+			t.Fatalf("LoadPublicKey() failed, err: %v", err)
+		}
+		if privateKey, err = c.LoadPrivateKey(); err != nil {
+			t.Fatalf("LoadPrivateKey() failed, err: %v", err)
 		}
 	})
 
@@ -38,13 +43,13 @@ func Test(t *testing.T) {
 			var cipherText string
 
 			// Encrypt
-			if cipherText, err = keyPair.EncryptOAEP(plainText); err != nil {
+			if cipherText, err = publicKey.EncryptOAEP(plainText); err != nil {
 				t.Fatalf("EncryptOAEP() failed, err: %v", err)
 			}
 
 			// Decrypt
 			var decrypted string
-			if decrypted, err = keyPair.DecryptOAEP(cipherText); err != nil {
+			if decrypted, err = privateKey.DecryptOAEP(cipherText); err != nil {
 				t.Fatalf("DecryptOAEP() failed, err: %v", err)
 			}
 			if decrypted != plainText {
@@ -57,14 +62,14 @@ func Test(t *testing.T) {
 			var cipherText string
 
 			// Encrypt
-			if cipherText, err = keyPair.EncryptPKCS1v15(plainText); err != nil {
+			if cipherText, err = publicKey.EncryptPKCS1v15(plainText); err != nil {
 				t.Fatalf("EncryptPKCS1v15() failed, err: %v", err)
 			}
 			t.Logf("Encrypt success! result is: %s\n", cipherText)
 
 			// Decrypt
 			var decrypted string
-			if decrypted, err = keyPair.DecryptPKCS1v15(cipherText); err != nil {
+			if decrypted, err = privateKey.DecryptPKCS1v15(cipherText); err != nil {
 				t.Fatalf("DecryptPKCS1v15() failed, err: %v", err)
 			}
 			if decrypted != plainText {
@@ -78,13 +83,13 @@ func Test(t *testing.T) {
 			var payload = "this is a secret"
 			var signature string
 			// Sign
-			if signature, err = keyPair.SignPKCS1v15(payload); err != nil {
+			if signature, err = privateKey.SignPKCS1v15(payload); err != nil {
 				t.Fatalf("SignPKCS1v15() failed, err: %v", err)
 			}
 			t.Logf("Sign suceess, result is: %s", signature)
 
 			// Verify
-			if err = keyPair.VerifyPKCS1v15(payload, signature); err != nil {
+			if err = publicKey.VerifyPKCS1v15(payload, signature); err != nil {
 				t.Fatalf("VerifyPKCS1v15() failed, err: %v", err)
 			}
 			t.Logf("Verify passed")
@@ -94,13 +99,13 @@ func Test(t *testing.T) {
 			var payload = "this is a secret"
 			var signature string
 			// Sign
-			if signature, err = keyPair.SignPSS(payload); err != nil {
+			if signature, err = privateKey.SignPSS(payload); err != nil {
 				t.Fatalf("SignPSS() failed, err: %v", err)
 			}
 			t.Logf("Sign suceess, result is: %s", signature)
 
 			// Verify
-			if err = keyPair.VerifyPSS(payload, signature); err != nil {
+			if err = publicKey.VerifyPSS(payload, signature); err != nil {
 				t.Fatalf("VerifyPSS() failed, err: %v", err)
 			}
 			t.Logf("Verify passed")
