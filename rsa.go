@@ -50,7 +50,7 @@ func NewConfig(dotKeys, idRsa, idRsaPub string, keySize int) *Config {
 	}
 }
 
-// Generates a pair of rsa key pair with the given key size defined in Config.
+// GenerateKeyPair generates a pair of rsa key pair with the given key size defined in Config.
 func (c *Config) GenerateKeyPair() (*rsa.PrivateKey, error) {
 	// Generate key pair
 	privateKey, err := generateKeyPair(c.KeySize)
@@ -68,11 +68,11 @@ func (c *Config) SaveKeyPair(keyPair *rsa.PrivateKey) error {
 		return err
 	}
 	// Save private key
-	if err := saveIdRsa(c.IDRsa, keyPair); err != nil {
+	if err := saveIDRsa(c.IDRsa, keyPair); err != nil {
 		return err
 	}
 	// Save public key
-	if err := saveIdRsaPub(c.IDRsaPub, keyPair); err != nil {
+	if err := saveIDRsaPub(c.IDRsaPub, keyPair); err != nil {
 		return err
 	}
 	return nil
@@ -80,11 +80,11 @@ func (c *Config) SaveKeyPair(keyPair *rsa.PrivateKey) error {
 
 // LoadKeyPair return a KeyPair object by loading key files defined in Config.
 func (c *Config) LoadKeyPair() (*KeyPair, error) {
-	publicKey, err := getIdRsaPub(c.IDRsaPub)
+	publicKey, err := getIDRsaPub(c.IDRsaPub)
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := getIdRsa(c.IDRsa)
+	privateKey, err := getIDRsa(c.IDRsa)
 	if err != nil {
 		return nil, err
 	}
@@ -147,11 +147,7 @@ func (p *KeyPair) SignPKCS1v15(payload string) (string, error) {
 
 // VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
 func (p *KeyPair) VerifyPKCS1v15(payload, signature64 string) error {
-	err := verifyPKCS1v15(payload, signature64, p.publicKey)
-	if err != nil {
-		return err
-	}
-	return nil
+	return verifyPKCS1v15(payload, signature64, p.publicKey)
 }
 
 // SignPSS calculates the signature of digest using PSS.
@@ -165,11 +161,7 @@ func (p *KeyPair) SignPSS(payload string) (string, error) {
 
 // VerifyPSS verifies a PSS signature.
 func (p *KeyPair) VerifyPSS(payload, signature64 string) error {
-	err := verifyPSS(payload, signature64, p.publicKey)
-	if err != nil {
-		return err
-	}
-	return nil
+	return verifyPSS(payload, signature64, p.publicKey)
 }
 
 // generateKeyPair generates an RSA keypair of the given bit size.
@@ -189,8 +181,8 @@ func generateKeyPair(keySize int) (*rsa.PrivateKey, error) {
 	return keyPair, nil
 }
 
-// saveIdRsa save private key to filename.
-func saveIdRsa(fileName string, keyPair *rsa.PrivateKey) error {
+// saveIDRsa save private key to filename.
+func saveIDRsa(fileName string, keyPair *rsa.PrivateKey) error {
 	// Private key stream
 	privateKeyBlock := &pem.Block{
 		Type:  "PRIVATE KEY",
@@ -206,8 +198,8 @@ func saveIdRsa(fileName string, keyPair *rsa.PrivateKey) error {
 	return pem.Encode(f, privateKeyBlock)
 }
 
-// saveIdRsaPub save public key to filename.
-func saveIdRsaPub(fileName string, keyPair *rsa.PrivateKey) error {
+// saveIDRsaPub save public key to filename.
+func saveIDRsaPub(fileName string, keyPair *rsa.PrivateKey) error {
 	// Public key stream
 	pubKeyBytes, err := x509.MarshalPKIXPublicKey(&keyPair.PublicKey)
 	if err != nil {
@@ -228,8 +220,8 @@ func saveIdRsaPub(fileName string, keyPair *rsa.PrivateKey) error {
 	return pem.Encode(f, publicKeyBlock)
 }
 
-// getIdRsaPub get public key from filename.
-func getIdRsaPub(filename string) (*rsa.PublicKey, error) {
+// getIDRsaPub get public key from filename.
+func getIDRsaPub(filename string) (*rsa.PublicKey, error) {
 	keyData, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -252,8 +244,8 @@ func getIdRsaPub(filename string) (*rsa.PublicKey, error) {
 	}
 }
 
-// getIdRsa get private key from filename.
-func getIdRsa(filename string) (*rsa.PrivateKey, error) {
+// getIDRsa get private key from filename.
+func getIDRsa(filename string) (*rsa.PrivateKey, error) {
 	keyData, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
